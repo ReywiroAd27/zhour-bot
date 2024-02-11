@@ -1,0 +1,29 @@
+{
+  "options": {
+    "owner": ["6281235625870"],
+    "antiCall": true,
+    "mode": "public",
+    "botName": "Axelion-MD",
+    "prefix": "•π÷×¶∆£¢€¥®™+✓_=|/~!?@#%^&.©^",
+    "status": [
+      "all",
+      "owner",
+      "admin",
+      "botAdmin",
+      "premium"
+      ]
+  },
+  "Exif": {
+    "packEmail": "1209348756indo@gmail.com",
+    "packLink": "https://instagram.com/bsw48.official?igshid=NzZlODBkYWE4Ng==",
+    "packPublish": "Axelion Bot",
+    "packId": "http://bsw48.rf.gd/packid",
+    "packName": "Axelion Sticker"
+  },
+  "limit": {
+    "owner": "unlimited",
+    "guest": 15000000,
+    "legendary": 23000000,
+    "super": 30000000
+  }
+}
