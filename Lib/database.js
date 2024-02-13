@@ -1,5 +1,5 @@
 const fs = require('fs')
-    const admin = require("firebase-admin");
+const admin = require("firebase-admin");
 
 module.exports = class Database{
   constructor(option){
@@ -20,7 +20,7 @@ module.exports = class Database{
       case 'db/json':
         try {
           const data = `${fs.readFileSync(this.path, 'utf8')}`
-          JSON.parse(data);
+          return JSON.parse(data);
         } catch (e) {
           return {}
         }

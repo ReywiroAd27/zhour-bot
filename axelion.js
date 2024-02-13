@@ -9,7 +9,7 @@ const path = require('path')
 const NodeCache = require('node-cache')
 const moment = require('moment-timezone')
 const cfonts = require("cfonts")
-const ld = require("lodash")
+const _ = require("lodash")
 
 //other module
 const Func = require('./Lib/function.js')
@@ -30,7 +30,7 @@ const question = text => new Promise((resolve) => rl.question(text, resolve))
 const banner = cfonts.render("Axelion-MD", {
   font: "tiny",
   align: "center",
-  colors: ld.shuffle(["red", "cyan", "yellow", "green"]),
+  colors: _.shuffle(["orange", "blue", "white", "cyan", "yellow", "green"]),
   background: "transparent",
   letterSpacing: 2,
   lineHeight: 2,
@@ -53,8 +53,8 @@ setInterval(() => {
 }, 10000)
 
 async function start() {
-  process.on('unhandledRejection', (err) => console.error(chalk.bgRed(chalk.gray(err))));
-  
+  //process.on('unhandledRejection', (err) => console.error(chalk.bgWhite(chalk.red(err))));
+  let mode;
   const content = {
     users: await userDB.read(),
     groups: await groupDB.read()
@@ -76,6 +76,7 @@ async function start() {
 
    let select
    if (!fs.existsSync('./AuthState/creds.json') && !qrCode && !pairingCode) {
+     mode = true
      select = question('Welcome To "Axelion".\n To continue, you must select this options for login to whatsapp:\n1. Login with QR-Code\n2. Login with Phone-number\n#')
    }
 
@@ -109,6 +110,7 @@ async function start() {
    await Client({ axel, store })
    
    axel.ev.on("connection.update", ({ connection }) => {
+     if (mode === true) {
       if (connection === "open") {
         console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.gray('[') + chalk.white(' Status ') + chalk.gray('] ') + "Connect To (" + chalk.keyword("orange")(axel.user?.["id"]["split"](":")[0]) + ")")
       }
@@ -121,6 +123,7 @@ async function start() {
           console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.gray('[') + chalk.white(' Status ') + chalk.gray('] ') + "Reconnect To (" + chalk.keyword("orange")(axel.user?.["id"]["split"](":")[0]) + ")")
         }
       }
+     }
     })
    if (select === "2" || pairingCode) {
      if(!axel.authState.creds.registered) {
@@ -168,16 +171,20 @@ async function start() {
             process.exit(0)
          } else {
             console.log(reason)
-            process.send('reset')
+            try {
+              process.send('reset')
+            } catch {
+              start()
+            }
          }
       }
+      
 
       if (connection === "open") {
          axel.sendMessage(config.options.owner[0] + "@s.whatsapp.net", {
             text: `${axel?.user?.name || "Axelion"} has Connected...`,
-         })
-      }
-   })
+      })}
+    }
    
    axel.ev.on("creds.update", saveCreds)
    
