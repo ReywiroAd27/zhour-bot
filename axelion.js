@@ -1,9 +1,17 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, makeInMemoryStore, getContentType, delay, fetchLatestBaileysVersion, PHONENUMBER_MCC, jidNormalizedUser } = require('@whiskeysockets/baileys')
+const { default: makeWASocket, 
+  useMultiFileAuthState, 
+  DisconnectReason,
+  makeInMemoryStore,
+  getContentType, 
+  delay, 
+  fetchLatestBaileysVersion, 
+  makeCacheableSignalKeyStore, 
+  jidNormalizedUser 
+} = require('@whiskeysockets/baileys')
 const chalk = require('chalk')
 const Pino = require('pino')
 const readline = require('readline')
 const { Boom } = require('@hapi/boom')
-const { parsePhoneNumber } = require('libphonenumber-js')
 const fs = require('fs')
 const path = require('path')
 const NodeCache = require('node-cache')
@@ -11,7 +19,7 @@ const moment = require('moment-timezone')
 const cfonts = require("cfonts")
 const _ = require("lodash")
 
-//other module
+//My Lib module
 const Func = require('./Lib/function.js')
 const Client = require('./Lib/client.js')
 const Serialize = require('./Lib/serialize.js')
@@ -27,10 +35,11 @@ const groupDB = new Database({ type: 'db/json', path: './Database/group.json'})
 const config = new Database({ type:'db/json', path: "./Database/config.json"}).read()
 
 const question = text => new Promise((resolve) => rl.question(text, resolve))
+
 const banner = cfonts.render("Axelion-MD", {
   font: "tiny",
   align: "center",
-  colors: _.shuffle(["orange", "blue", "white", "cyan", "yellow", "green"]),
+  colors: _.shuffle(["candy", "blue", "white", "cyan", "yellow", "green"]),
   background: "transparent",
   letterSpacing: 2,
   lineHeight: 2,
@@ -43,193 +52,140 @@ const banner = cfonts.render("Axelion-MD", {
 });
 
 console.log(banner.string);
-const pairingCode = process.argv.includes('--pairing')
-const qrCode = process.argv.includes('--qr')
 
-const store = makeInMemoryStore({})
-store.readFromFile('./Database/store.json')
-setInterval(() => {
-    store.writeToFile('./Database/store.json')
-}, 10000)
+// logger
+const logger = Pino().child({
+    level: "silent",
+    stream: "store"
+});
+const store = makeInMemoryStore({
+    logger
+});
 
-async function start() {
-  //process.on('unhandledRejection', (err) => console.error(chalk.bgWhite(chalk.red(err))));
-  let mode;
-  const content = {
-    users: await userDB.read(),
-    groups: await groupDB.read()
-  }
-   if (content.user && Object.keys(content.users).length === 0 || content.groups && Object.keys(content.groups) === 0) {
-      global.db = {
-        users: {
-          ...(content.users || {})
-        },
-        groups: {
-          ...(content.groups || {})
+async function startSocket() {
+    //process.on('unhandledRejection', (err) => console.error(chalk.bgWhite(chalk.red(err))));
+    try {
+        const {
+            state,
+            saveCreds
+        } = await useMultiFileAuthState("AuthState");
+        const {
+            version
+        } = await fetchLatestBaileysVersion();
+        
+        //Database initialize
+        const content = {
+          users: await userDB.read(),
+          groups: await groupDB.read()
         }
-      };
-      await userDB.write(global.db.users);
-      await groupDB.write(global.db.groups);
-   } else {
-      global.db = content
-   }
-
-   let select
-   if (!fs.existsSync('./AuthState/creds.json') && !qrCode && !pairingCode) {
-     mode = true
-     select = question('Welcome To "Axelion".\n To continue, you must select this options for login to whatsapp:\n1. Login with QR-Code\n2. Login with Phone-number\n#')
-   }
-
-   const { state, saveCreds } = await useMultiFileAuthState("./AuthState")
-    const { version, isLatest } = await fetchLatestBaileysVersion()
-    const nodeCache = new NodeCache()
-
-    const connectionUpdate = {
-        version,
-        keepAliveInternalMs: 30000,
-        printQRInTerminal: select === "1"|| qrCode,
-        generateHighQualityLinkPreview: true,
-        msgRetryCounterCache: nodeCache,
-        markOnlineOnConnect: true,
-        defaultQueryTimeoutMs: undefined,
-        logger: Pino({ level: "silent" }),
-        auth: state,
-        browser: ["Google Chrome (Linux)", "", ""]
-    }
-
-    const axel = makeWASocket(connectionUpdate)
-    store.bind(axel.ev)
-    
-    axel.ev.on("contacts.update", (update) => {
-      for (let contact of update) {
-         let id = jidNormalizedUser(contact.id)
-         if (store && store.contacts) store.contacts[id] = { id, name: contact.notify }
-      }
-   })
-   
-   await Client({ axel, store })
-   
-   axel.ev.on("connection.update", ({ connection }) => {
-     if (mode === true) {
-      if (connection === "open") {
-        console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.gray('[') + chalk.white(' Status ') + chalk.gray('] ') + "Connect To (" + chalk.keyword("orange")(axel.user?.["id"]["split"](":")[0]) + ")")
-      }
-      if (connection === "close") {
-        console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.gray('[') + chalk.white(' Status ') + chalk.gray('] ') + "Connection close")
-        start()
-      }
-      if (connection === "connecting") {
-        if (axel.user) {
-          console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.gray('[') + chalk.white(' Status ') + chalk.gray('] ') + "Reconnect To (" + chalk.keyword("orange")(axel.user?.["id"]["split"](":")[0]) + ")")
-        }
-      }
-     }
-    })
-   if (select === "2" || pairingCode) {
-     if(!axel.authState.creds.registered) {
-    		const phoneNumber = await question(chalk.green(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + "Input your Number, Example ") + '('  + chalk.gray('62xxxx') + ') ' + chalk.keyword("orange")(': '));
-    		const code = await axel.requestPairingCode(phoneNumber.trim())
-        rl.close()
-        setTimeout(async () => {
-             let code = await axel.requestPairingCode(phoneNumber)
-             code = code?.match(/.{1,4}/g)?.join("-") || code
-             console.log(chalk.black(chalk.bgGreen(`axel Pairing Code : `)), chalk.black(chalk.white(code)))
-          }, 2000)
-    	} 
-   }
-	
-	axel.ev.on("connection.update", async (update) => {
-      const { lastDisconnect, connection, qr } = update
-      if (connection) {
-         console.info(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.gray('[') + chalk.white(' Status ') + chalk.gray('] ') + connection)
-      }
-      if (connection === "close") {
-         let reason = new Boom(lastDisconnect?.error)?.output.statusCode
-         if (reason === DisconnectReason.badSession) {
-            console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.redBright('[') + chalk.bold.red(' Failed ') + chalk.redBright('] ') + `Bad Session File, Please Delete Session and Scan Again`)
-            process.send('reset')
-         } else if (reason === DisconnectReason.connectionClosed) {
-            console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.redBright('[') + chalk.bold.red(' Failed ') + chalk.redBright('] ') + "Connection closed, reconnecting....")
-            await start()
-         } else if (reason === DisconnectReason.connectionLost) {
-            console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.redBright('[') + chalk.bold.red(' Failed ') + chalk.redBright('] ') + "Connection Lost from Server, reconnecting...")
-            await start()
-         } else if (reason === DisconnectReason.connectionReplaced) {
-            console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.redBright('[') + chalk.bold.red(' Failed ') + chalk.redBright('] ') + "Connection Replaced, Another New Session Opened, Please Close Current Session First")
-            process.exit(1)
-         } else if (reason === DisconnectReason.loggedOut) {
-            console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.redBright('[') + chalk.bold.red(' Failed ') + chalk.redBright('] ') + `Device Logged Out, Please Scan Again And Run.`)
-            process.exit(1)
-         } else if (reason === DisconnectReason.restartRequired) {
-            console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.redBright('[') + chalk.bold.red(' Failed ') + chalk.redBright('] ') + "Restart Required, Restarting...")
-            await start()
-         } else if (reason === DisconnectReason.timedOut) {
-            console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.redBright('[') + chalk.bold.red(' Failed ') + chalk.redBright('] ') + "Connection TimedOut, Reconnecting...")
-            process.send('reset')
-         } else if (reason === DisconnectReason.multideviceMismatch) {
-            console.log(chalk.hex('#61dafb')('[') + chalk.hex('#ff8c00')(' Sys ') + chalk.hex('#61dafb')('] ') + chalk.redBright('[') + chalk.bold.red(' Failed ') + chalk.redBright('] ') + "Multi device mismatch, please scan again")
-            process.exit(0)
-         } else {
-            console.log(reason)
-            try {
-              process.send('reset')
-            } catch {
-              start()
-            }
-         }
-      }
-      
-
-      if (connection === "open") {
-         axel.sendMessage(config.options.owner[0] + "@s.whatsapp.net", {
-            text: `${axel?.user?.name || "Axelion"} has Connected...`,
-      })}
-    }
-   
-   axel.ev.on("creds.update", saveCreds)
-   
-   axel.ev.on("messages.upsert", async ( message ) => {
-     if (!message.messages) return
-     const m = await Serialize(axel, message.messages[0], config)
-     await (require('./Events/handle.js'))(axel, m, config)
-   })
-   
-   //Group Participants Update
-   axel.ev.on("group-participants.update", async (message) => {
-      await (require('./Events/GPU.js'))(axel, message)
-   })
-
-   // group update
-   axel.ev.on("groups.update", async (update) => {
-      await (require('./Events/GU.js'))(axel, update)
-   })
-
-   // auto reject call when user call
-   axel.ev.on("call", async (json) => {
-      if (config.options.antiCall) {
-         for (const id of json) {
-            if (id.status === "offer") {
-              if (!m.isGroup) {
-                 let msg = await axel.sendMessage(id.from, {
-                    text: `Maaf Saya Merupakan Sebuah bot. Jadi Saya tidak bisa menerima panggilan dari anda. Jika anda ingin bertanya atau request fitur, kamu bisa hubungi Owner saya`,
-                    mentions: [id.from],
-                })
-                axel.sendContact(id.from, config.options.owner, msg)
-                await axel.rejectCall(id.id, id.from)
+         if (content.user && Object.keys(content.users).length === 0 || content.groups && Object.keys(content.groups) === 0) {
+            global.db = {
+              users: {
+                ...(content.users || {})
+              },
+              groups: {
+                ...(content.groups || {})
               }
-          }
-        }
-      }
-   })
+            };
+            await userDB.write(global.db.users);
+            await groupDB.write(global.db.groups);
+         } else {
+            global.db = content
+         }
+         
+        //Bot initialize
+        const sock = makeWASocket({
+            version,
+            printQRInTerminal: true,
+            generateHighQualityLinkPreview: true,
+            auth: {
+                creds: state.creds,
+                keys: makeCacheableSignalKeyStore(state.keys, Pino({
+                    level: "silent"
+                })),
+            },
+            logger: Pino({
+                level: "silent"
+            }),
+            browser: ["Windows", "Chrome", "10.0.1"]
+        });
+        
+        // store
+        store.bind(sock.ev);
+        setInterval(async () => {
+            await store.writeToFile("./store.json");
+        }, 10000);
+        
+        await Client({sock, store, config})
 
-    /*setInterval(async () => {
-      await (require('./Automate/index.js'))
-    }, 1000)*/
-   // rewrite database every 30 seconds
-   setInterval(async () => {
+        sock.ev.process(async (events) => {
+            
+            // connection 
+            if (events["connection.update"]) {
+                const update = events["connection.update"];
+                const {
+                    connection,
+                    lastDisconnect,
+                    qr
+                } = update;
+                global.stopped = connection;
+                const reason = new Boom(lastDisconnect?.error)?.output.statusCode;
+                if (qr) {
+                    console.log(chalk.yellow("Scan this QR code to run the bot, max 60 seconds"));
+                }
+                else if (connection == "close") {
+                    if (reason !== DisconnectReason.loggedOut) {
+                        startSocket();
+                    }
+                    else {
+                        console.log(chalk.yellow("Connection closed. You are logged out"));
+                        process.send("reset");
+                    }
+                }
+                if (connection === "connecting") {
+                    console.log(chalk.green("Connecting..."));
+                }
+                else if (connection == "open") {
+                    console.log(chalk.green("Connected"));
+                }
+            }
+            if (events["creds.update"]) {
+                await saveCreds();
+            }
+            
+            // reject call
+            if (events["call"]) {
+                const m = events["call"][0];
+                if (m.status == "offer") {
+                    sock.rejectCall(m.id, m.from);
+                }
+            }
+            
+            // message
+            if (events["messages.upsert"]) {
+                let message = events["messages.upsert"];
+                if (message.type == "notify") {
+                    if (!message) return;
+                    console.log(message.messages[0]);
+                    const m = await Serialize(sock, message.messages[0], config)
+                    await (require("./Events/handle.js"))(sock, m, config)
+                }
+            }
+        });
+
+        if (sock.user && sock.user?.id) {
+            sock.user.jid = jidNormalizedUser(sock.user?.id);
+        }
+
+        return sock;
+    }
+    catch (er) {
+        console.error(er);
+    }
+    setInterval(async () => {
       if (global.db.users) await userDB.write(global.db.users)
       if (global.db.users) await groupDB.write(global.db.groups)
    }, 30000)
 }
 
-start();
+startSocket();

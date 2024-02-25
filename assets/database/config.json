@@ -1,0 +1,36 @@
+{
+  "options": {
+    "owner": ["6281235625870"],
+    "antiCall": true,
+    "mode": "public",
+    "botName": "Axelion-MD",
+    "prefix": "•π÷×¶∆£¢€¥®™+✓_=|/~!?@#%^&.©^",
+    "status": [
+      "all",
+      "owner",
+      "admin",
+      "botAdmin",
+      "premium"
+      ]
+  },
+  "msg": {
+    "owner": "_*Access Denied!!*_ This Command ''_@_'' can be only access by owner.",
+    "admin": "_*Access Denied!!*_ This Command ''_@_'' can be only access by group admin.",
+    "botAdmin": "_*Access Denied!!*_ This Command ''_@_'' can be only access when the bot is admin",
+    "group": "_*Access Denied!!*_ This Features Can be only access on Group Chat",
+    "private": "_*Access Denied!!*_ This Features Can be only access on Private Chat",
+    "limitReset": "Your limit has been reached! You can wait until midnight for the limit to reset!!",
+    "limit": "Your limit is insufficient to use this feature!!"
+  },
+  "Exif": {
+    "packEmail": "1209348756indo@gmail.com",
+    "packLink": "https://instagram.com/bsw48.official?igshid=NzZlODBkYWE4Ng==",
+    "packPublish": "Axelion Bot",
+    "packId": "http://bsw48.rf.gd/packid",
+    "packName": "Axelion Sticker"
+  },
+  "limit": {
+    "owner": "unlimited",
+    "guest": 150
+  }
+}

@@ -20,6 +20,8 @@
   "author": "Aditya MM",
   "license": "ISC",
   "dependencies": {
+    "@ookla/speedtest-js-sdk": "^1.0.9",
+    "@vitalets/google-translate-api": "^9.2.0",
     "@whiskeysockets/baileys": "^6.6.0",
     "bad-words-next": "^2.2.1",
     "cfonts": "^3.2.0",
@@ -31,6 +33,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "google-translate-api": "^2.3.0",
     "lodash": "^4.17.21",
+    "module-alias": "^2.2.3",
     "moment-timezone": "^0.5.43",
     "mongoose": "^7.3.4",
     "node-webpmux": "^3.1.7",
@@ -44,5 +47,9 @@
     "link-preview-js": "^3.0.4",
     "open": "^8.4.2",
     "qrcode-terminal": "0.12.0"
+  },
+  "_moduleAliases": { 
+  "@db": "./Lib/database",
+  "@lib": "./Lib"
   }
 }
