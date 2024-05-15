@@ -1,0 +1,14 @@
+config:
+  options:
+    bot: Array<List>(0: 6281234525870, _1: "Axelion-Md");
+    status: Array<String>("guest", "premium");
+    */prefix: /^[•_=|/!?#&.^]/i;
+    limit: Object<Int?status>(15, 40);
+  
+  cores:
+    ArrayCmdFormat: Array<Null>;
+    mode: "public";
+  
+  APIs:
+    aemt: 
+      url: "https://aemt.me";

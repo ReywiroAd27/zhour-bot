@@ -1,5 +1,5 @@
-const Func = require("./function.js")
-const { writeExif } = require("./sticker.js")
+const Func = require("@func/index")
+const { writeExif } = require("@func/sticker")
 
 const { prepareWAMessageMedia, jidNormalizedUser, proto, areJidsSameUser, generateWAMessageFromContent, downloadContentFromMessage, toBuffer } = require("@whiskeysockets/baileys")
 const fs = require("fs")

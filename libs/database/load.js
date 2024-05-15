@@ -1,4 +1,4 @@
-const Func = require('./function.js')
+const Func = require('@func/index')
 
 module.exports = function loadDatabase(m, config) {
   if (m.sender === undefined) return
@@ -8,25 +8,21 @@ module.exports = function loadDatabase(m, config) {
     let user = global.db.users[m.sender]
     if (typeof user !== "object") global.db.users[m.sender] = {}
     if (user) {
-        if (!isNumber(user.limit)) user.limit = m.isOwner ? config.limit.owner : config.limit.guest
+        if (!isNumber(user.limit)) user.limit = m.isOwner ? config.limit.owner : user.limit
         if (!("lastChat" in user)) user.lastChat = new Date() * 1
         if (!("name" in user)) user.name = m.pushName
         if (!isBoolean(user.banned)) user.banned = false
-        for (let i = 4; i <= Status.length - 1; i++) {
-          if (!isBoolean(user.status[Status[i]])) user.status[Status[i]] = m.isOwner ? true : false
-        }
+        if (!isNumber(user.age)) user.age = undefined
     } else {
-      let status = {}
-      for (let i = 4; i <= Status.length - 1; i++) {
-        status[Status[i]] = m.isOwner ? true : false
+      let data = {
+        limit: m.isOwner ? config.limit.owner : config.limit.guest,
+        lastChat: new Date() * 1,
+        name: m.pushName,
+        banned: false,
+        age: undefined
       }
-        global.db.users[m.sender] = {
-            limit: m.isOwner ? config.limit.owner : config.limit.guest,
-            lastChat: new Date() * 1,
-            name: m.pushName,
-            banned: false,
-            status: status
-        }
+      data["status"] = m.isOwner ? "owner" : "guest"
+      global.db.users[m.sender] = data
     }
 
 

@@ -6,7 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "start": "node axelion.js --pairing",
-    "dev": "nodemon axelion.js --pairing"
+    "dev": "node index.js --pairing"
   },
   "keywords": [
     "wabot",
@@ -48,8 +48,14 @@
     "open": "^8.4.2",
     "qrcode-terminal": "0.12.0"
   },
-  "_moduleAliases": { 
-  "@db": "./Lib/database",
-  "@lib": "./Lib"
+  "_moduleAliases": {
+    "@db": "./libs/database",
+    "@utils": "./libs/core_utils",
+    "@badwords": "./libs/badwords",
+    "@func": "./libs/function",
+    "@dbStorage": "./assets/database",
+    "@event": "./events",
+    "@plugins": "./events/plugins",
+    "@command": "./events/command.js"
   }
 }

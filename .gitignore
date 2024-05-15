@@ -1,5 +1,4 @@
-AuthState/
+sesion/
 node_modules/
-test.js
-server.js
-index.php
+.gitignore
+store.json

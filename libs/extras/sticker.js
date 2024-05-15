@@ -1,5 +1,5 @@
-const config = new (require("./database.js"))({ type: 'db/json', path: '../Database/config.json'}).read()
-const Func = require("./function.js")
+const config = new (require("@db/index"))({ type: 'db/json', path: '../../assets/database/config.json'}).read()
+const Func = require("@func/index")
 
 const fs = require("fs")
 const Crypto = require("crypto")

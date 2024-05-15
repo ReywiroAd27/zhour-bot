@@ -1,9 +1,9 @@
 const axios = require("axios")
 const cheerio = require("cheerio");
-const Database = require("./database")
+const Database = require("@db/index")
 const path = require("path")
-const db = new Database({type: "db/json", path: path.join(__dirname,"../Database/jkt48Live.json")})
-const dbBack = new Database({type: "db/json", path: path.join(__dirname, "../Database/jkt48Live(backup).json")})
+const db = new Database({type: "db/json", path: path.join(__dirname,"../../assets/database/jkt48Live.json")})
+const dbBack = new Database({type: "db/json", path: path.join(__dirname, "../../assets/database/jkt48_backup.json")})
 
 
 const Func = {

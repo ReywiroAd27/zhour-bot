@@ -14,5 +14,13 @@
     "leave": true,
     "auto": false,
     "filter": false
+  },
+  "120363201243762179@g.us": {
+    "lastChat": 1709048480244,
+    "mute": false,
+    "welcome": true,
+    "leave": true,
+    "auto": false,
+    "filter": false
   }
 }

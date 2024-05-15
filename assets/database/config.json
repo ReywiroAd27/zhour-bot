@@ -3,15 +3,15 @@
     "owner": ["6281235625870"],
     "antiCall": true,
     "mode": "public",
-    "botName": "Axelion-MD",
-    "prefix": "•π÷×¶∆£¢€¥®™+✓_=|/~!?@#%^&.©^",
+    "prefix": "•_=|/!?#&.^",
     "status": [
-      "all",
-      "owner",
-      "admin",
-      "botAdmin",
       "premium"
       ]
+  },
+  "bot": {
+    "name": "Axelion",
+    "creator": "Aditya M.M.",
+    "version": "1.0 beta"
   },
   "msg": {
     "owner": "_*Access Denied!!*_ This Command ''_@_'' can be only access by owner.",
@@ -30,7 +30,12 @@
     "packName": "Axelion Sticker"
   },
   "limit": {
-    "owner": "unlimited",
-    "guest": 150
-  }
+    "guest": 150,
+    "": ""
+  },
+  "APIs": {
+      "aemt": {
+         "baseURL": "https://aemt.me"
+      }
+   }
 }

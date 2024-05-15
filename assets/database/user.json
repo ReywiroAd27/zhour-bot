@@ -1,1 +1,22 @@
-{}
+{
+  "6288983879021@s.whatsapp.net": {
+    "limit": 150,
+    "lastChat": 1709048480243,
+    "name": "Adet",
+    "banned": false,
+    "status": "guest"
+  },
+  "6282189387018@s.whatsapp.net": {
+    "limit": 150,
+    "lastChat": 1709048689028,
+    "name": "!=",
+    "banned": false,
+    "status": "guest"
+  },
+  "6281235625870@s.whatsapp.net": {
+    "lastChat": 1709048720048,
+    "name": "Adit // Rixy || вѕw48",
+    "banned": false,
+    "status": "owner"
+  }
+}
